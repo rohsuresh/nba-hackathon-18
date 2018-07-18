@@ -73,7 +73,6 @@ end_ft = [10, 12, 15, 26, 20, 19, 22]
 
 def saver(dict, game):
     final = open('BigBallerPredictions_Q1_BBALL.csv', 'a')
-    final.write('Game_ID, Player_ID, Player_Plus/Minus')
     for each in dict:
         row_to_add = "%s,  %s, %s\n" % (game, each, dict[each].score)
         final.write(row_to_add)
@@ -88,8 +87,6 @@ def parse_game(game):
     parse_quarter(game, '4', dict)
     parse_quarter(game, '5', dict)
     saver(dict, game)
-    #for p in dict:
-    #    print(p, dict[p].score)
 
 def parse_file():
     game_set = set()
@@ -100,4 +97,7 @@ def parse_file():
         if game not in game_set:
             game_set.add(game)
             parse_game(game)
+
+final = open('BigBallerPredictions_Q1_BBALL.csv', 'a')
+final.write('Game_ID, Player_ID, Player_Plus/Minus')
 parse_file()
