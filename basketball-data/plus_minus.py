@@ -41,15 +41,17 @@ def parse_quarter(game, period, dict):
         play_rows = list(csv.DictReader(plays))
         for row in play_rows:
             if row["Game_id"] == game and row["Period"] == period:
+                global ft_ongoing
                 if row["Event_Msg_Type"] == '6' and int(row["Option3"]) > 0:
                     ft_ongoing = True
-                elif row["Event_Msg_Type"] == '1' or (row["Event_Msg_Type"] == '3' and row["Option1"] == '1'):
-                    points = int(row["Option1"])
-                    update_points(points, row["Team_id"], dict)
-                    if int(row["Action_Type"]) in end_ft:
+                elif row["Event_Msg_Type"] == '1' or row["Event_Msg_Type"] == '3':
+                    if row["Option1"] != '0':
+                        points = int(row["Option1"])
+                        update_points(points, row["Team_id"], dict)
+                    if row["Event_Msg_Type"] == '3' and (int(row["Action_Type"]) in end_ft):
                         ft_ongoing = False
                         sub_all(sub_dict, row["Team_id"], dict)
-                        global sub_dict = {}
+                        sub_dict.clear()
                 elif row["Event_Msg_Type"] == '8':
                     if ft_ongoing:
                         sub_dict[row["Person1"]] = row["Person2"]
@@ -57,6 +59,8 @@ def parse_quarter(game, period, dict):
                         substitute(row["Person1"], row["Person2"], row["Team_id"], dict)
 
 def sub_all(sub_dict, team, dict):
+    if not sub_dict:
+        return
     for player_out in sub_dict:
         player_in = sub_dict[player_out]
         substitute(player_out, player_in, team, dict)
@@ -68,11 +72,12 @@ sub_dict = {}
 end_ft = [10, 12, 15, 26, 20, 19, 22]
 
 def saver(dict, game):
+    final = open('BigBallerPredictions_Q1_BBALL.csv', 'a')
+    final.write('Game_ID, Player_ID, Player_Plus/Minus')
     for each in dict:
-        final = open('Final.csv', 'a')
         row_to_add = "%s,  %s, %s\n" % (game, each, dict[each].score)
         final.write(row_to_add)
-        final.close
+    final.close
 
 
 def parse_game(game):
