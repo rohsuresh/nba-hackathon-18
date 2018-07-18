@@ -24,12 +24,14 @@ def get_lineups(game, period, dict):
                 dict[row["Person_id"]].active = True
     return dict
 
-def update_points(points, team, dict):
+def update_points(points, dict, person):
+    team = dict[person].team_id
     for p in dict:
         if dict[p].active:
             dict[p].score += points if team == dict[p].team_id else -points
 
-def substitute(player1, player2, team, dict):
+def substitute(player1, player2, dict):
+    team = dict[player1].team_id
     dict[player1].active = False
     if player2 not in dict:
         dict[player2] = Player(team)
@@ -47,23 +49,23 @@ def parse_quarter(game, period, dict):
                 elif row["Event_Msg_Type"] == '1' or row["Event_Msg_Type"] == '3':
                     if row["Option1"] != '0':
                         points = int(row["Option1"])
-                        update_points(points, row["Team_id"], dict)
+                        update_points(points, dict, row["Person1"])
                     if row["Event_Msg_Type"] == '3' and (int(row["Action_Type"]) in end_ft):
                         ft_ongoing = False
-                        sub_all(sub_dict, row["Team_id"], dict)
+                        sub_all(sub_dict, dict)
                         sub_dict.clear()
                 elif row["Event_Msg_Type"] == '8':
                     if ft_ongoing:
                         sub_dict[row["Person1"]] = row["Person2"]
                     else:
-                        substitute(row["Person1"], row["Person2"], row["Team_id"], dict)
+                        substitute(row["Person1"], row["Person2"], dict)
 
-def sub_all(sub_dict, team, dict):
+def sub_all(sub_dict, dict):
     if not sub_dict:
         return
     for player_out in sub_dict:
         player_in = sub_dict[player_out]
-        substitute(player_out, player_in, team, dict)
+        substitute(player_out, player_in, dict)
 
 ft_ongoing = False
 #keys going out of game, value going into the game
@@ -98,6 +100,4 @@ def parse_file():
             game_set.add(game)
             parse_game(game)
 
-final = open('BigBallerPredictions_Q1_BBALL.csv', 'a')
-final.write('Game_ID, Player_ID, Player_Plus/Minus')
 parse_file()
